@@ -27,7 +27,7 @@ public class EnemyX : MonoBehaviour
     void Start()
     {
         enemyRb = GetComponent<Rigidbody>();
-        if(playerGoal == null)
+        if (playerGoal == null)
         {
             playerGoal = GameObject.Find("Player Goal");
         }
@@ -36,6 +36,14 @@ public class EnemyX : MonoBehaviour
 
         // Speed increases per wave
         speed = baseSpeed + (waveLevel * 0.5f);
+
+        // Set color based on enemy type
+        Renderer r = GetComponent<Renderer>();
+
+        if (enemyType == EnemyType.Aggressive) r.material.color = Color.red;
+        if (enemyType == EnemyType.Defensive) r.material.color = Color.blue;
+        if (enemyType == EnemyType.Evasive) r.material.color = Color.yellow;
+
     }
 
     void Update()
