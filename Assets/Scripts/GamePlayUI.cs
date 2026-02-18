@@ -12,7 +12,13 @@ public class GamePlayUI : MonoBehaviour
     [SerializeField] private Slider simplePowerupSlider;
     [SerializeField] private Slider smashPowerupSlider;
 
+    [SerializeField] private Button pauseButton;
     [SerializeField] private GameObject pausePanel;
+
+    public void Start()
+    {
+        pauseButton.onClick.AddListener(() => GameManager.Instance.TogglePause());
+    }
 
     public void UpdateWave(int wave)
     {

@@ -30,6 +30,7 @@ public class PlayerControllerX : MonoBehaviour
 
     void Update()
     {
+        if(!GameManager.Instance.isGameRunning || GameManager.Instance.isPaused) { return; }
         Move();
         UpdateIndicator();
     }
