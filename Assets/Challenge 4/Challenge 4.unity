@@ -339,8 +339,11 @@ MonoBehaviour:
   enemyPrefab: {fileID: 8932280921958007952, guid: 47045ccb8f3944b9b8a55f6b07f0aefc, type: 3}
   powerupPrefab: {fileID: 4446131693967519089, guid: c5497424856514b2ba61b78375567988, type: 3}
   smashPowerupPrefab: {fileID: 4446131693967519089, guid: d7bc7bfd192420746a3d696b2458a544, type: 3}
-  enemyCount: 0
-  waveCount: 1
+  spawnRangeX: 10
+  spawnZMin: 15
+  spawnZMax: 25
+  powerupSpawnOffset: {x: 0, y: 0, z: -15}
+  startingEnemies: 2
   player: {fileID: 583048338}
 --- !u!1001 &258741155
 PrefabInstance:
@@ -557,13 +560,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5036a60f22d8542ca830e4578804462b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hasPowerup: 0
+  moveForce: 500
+  focalPoint: {fileID: 0}
+  powerupDuration: 5
   powerupIndicator: {fileID: 1427939658}
-  powerUpDuration: 15
-  hasSmashPowerup: 0
+  normalStrength: 10
+  powerupStrength: 25
   smashForce: 40
   smashRadius: 5
-  jumpForce: 15
 --- !u!1 &680832294
 GameObject:
   m_ObjectHideFlags: 0
@@ -1210,6 +1214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 744266f074b3f4235a838c7c53aa326b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  speed: 200
   player: {fileID: 583048338}
 --- !u!4 &1170353596
 Transform:
@@ -5325,7 +5330,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &6516816749022178227
 MonoBehaviour:
   m_ObjectHideFlags: 0
