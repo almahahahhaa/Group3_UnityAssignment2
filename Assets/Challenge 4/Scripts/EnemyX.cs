@@ -4,9 +4,24 @@ using UnityEngine;
 
 public class EnemyX : MonoBehaviour
 {
-    public float speed;
+    public enum EnemyType
+    {
+        Aggressive,
+        Defensive,
+        Evasive
+    }
+
+    public EnemyType enemyType;
+
+    public float baseSpeed = 8f;
+    private float speed;
+
     private Rigidbody enemyRb;
     private GameObject playerGoal;
+    private GameObject player;
+
+    private int waveLevel = 1;
+
 
     // Start is called before the first frame update
     void Start()
@@ -16,29 +31,57 @@ public class EnemyX : MonoBehaviour
         {
             playerGoal = GameObject.Find("Player Goal");
         }
+
+        player = GameObject.FindGameObjectWithTag("Player");
+
+        // Speed increases per wave
+        speed = baseSpeed + (waveLevel * 0.5f);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // Set enemy direction towards player goal and move there
-        Vector3 lookDirection = (playerGoal.transform.position - transform.position).normalized;
-        enemyRb.AddForce(lookDirection * speed * Time.deltaTime);
+        Vector3 moveDir = Vector3.zero;
 
+        switch (enemyType)
+        {
+            case EnemyType.Aggressive:
+                // Direct rush to goal
+                moveDir = (playerGoal.transform.position - transform.position).normalized;
+                break;
+
+            case EnemyType.Defensive:
+                // Move toward goal but avoid player
+                Vector3 toGoal = (playerGoal.transform.position - transform.position).normalized;
+                Vector3 awayFromPlayer = (transform.position - player.transform.position).normalized;
+                moveDir = (toGoal + awayFromPlayer).normalized;
+                break;
+
+            case EnemyType.Evasive:
+                // Zig-zag movement
+                Vector3 goalDir = (playerGoal.transform.position - transform.position).normalized;
+                Vector3 side = Vector3.Cross(goalDir, Vector3.up);
+                moveDir = (goalDir + side * Mathf.Sin(Time.time * 3f)).normalized;
+                break;
+        }
+
+        enemyRb.AddForce(moveDir * speed * Time.deltaTime);
+    }
+
+    public void Initialize(int wave, EnemyType type)
+    {
+        waveLevel = wave;
+        enemyType = type;
+
+        speed = baseSpeed + (waveLevel * 0.5f);
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        // If enemy collides with either goal, destroy it
-        if (other.gameObject.name == "Enemy Goal")
-        {
-            Destroy(gameObject);
-        } 
-        else if (other.gameObject.name == "Player Goal")
+        if (other.gameObject.name == "Enemy Goal" ||
+            other.gameObject.name == "Player Goal")
         {
             Destroy(gameObject);
         }
-
     }
 
 }
