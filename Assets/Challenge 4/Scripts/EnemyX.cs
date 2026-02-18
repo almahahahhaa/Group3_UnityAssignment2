@@ -1,95 +1,84 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class EnemyX : MonoBehaviour
 {
-    public enum EnemyType
-    {
-        Aggressive,
-        Defensive,
-        Evasive
-    }
+    public enum EnemyType { Aggressive, Defensive, Evasive }
 
-    public EnemyType enemyType;
+    [Header("Settings")]
+    [SerializeField] private float baseSpeed = 8f;
+    [SerializeField] private float waveSpeedMultiplier = 0.5f;
 
-    public float baseSpeed = 8f;
+    [Header("Debug Colors")]
+    [SerializeField] private Color aggressiveColor = Color.red;
+    [SerializeField] private Color defensiveColor = Color.blue;
+    [SerializeField] private Color evasiveColor = Color.yellow;
+
+    private Rigidbody rb;
+    private Transform playerGoal;
+    private Transform player;
+    private SpawnManagerX spawnManager;
+
+    private EnemyType type;
     private float speed;
 
-    private Rigidbody enemyRb;
-    private GameObject playerGoal;
-    private GameObject player;
-
-    private int waveLevel = 1;
-
-
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
-        enemyRb = GetComponent<Rigidbody>();
-        if (playerGoal == null)
-        {
-            playerGoal = GameObject.Find("Player Goal");
-        }
+        rb = GetComponent<Rigidbody>();
+        playerGoal = GameObject.Find("Player Goal").transform;
+        player = GameObject.FindGameObjectWithTag("Player").transform;
+    }
+    // Initializes the enemy with its type and speed based on the current wave
+    public void Initialize(int wave, EnemyType enemyType, SpawnManagerX manager)
+    {
+        spawnManager = manager;
+        type = enemyType;
+        speed = baseSpeed + wave * waveSpeedMultiplier;
 
-        player = GameObject.FindGameObjectWithTag("Player");
-
-        // Speed increases per wave
-        speed = baseSpeed + (waveLevel * 0.5f);
-
-        // Set color based on enemy type
-        Renderer r = GetComponent<Renderer>();
-
-        if (enemyType == EnemyType.Aggressive) r.material.color = Color.red;
-        if (enemyType == EnemyType.Defensive) r.material.color = Color.blue;
-        if (enemyType == EnemyType.Evasive) r.material.color = Color.yellow;
-
+        ApplyColor();
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        Vector3 moveDir = Vector3.zero;
+        Vector3 dir = GetMovementDirection();
+        rb.AddForce(dir * speed, ForceMode.Force);
+    }
+    // Determines the movement direction based on the enemy type
+    Vector3 GetMovementDirection()
+    {
+        Vector3 goalDir = (playerGoal.position - transform.position).normalized;
 
-        switch (enemyType)
+        switch (type)
         {
             case EnemyType.Aggressive:
-                // Direct rush to goal
-                moveDir = (playerGoal.transform.position - transform.position).normalized;
-                break;
+                return goalDir;
 
             case EnemyType.Defensive:
-                // Move toward goal but avoid player
-                Vector3 toGoal = (playerGoal.transform.position - transform.position).normalized;
-                Vector3 awayFromPlayer = (transform.position - player.transform.position).normalized;
-                moveDir = (toGoal + awayFromPlayer).normalized;
-                break;
+                Vector3 away = (transform.position - player.position).normalized;
+                return (goalDir + away).normalized;
 
             case EnemyType.Evasive:
-                // Zig-zag movement
-                Vector3 goalDir = (playerGoal.transform.position - transform.position).normalized;
                 Vector3 side = Vector3.Cross(goalDir, Vector3.up);
-                moveDir = (goalDir + side * Mathf.Sin(Time.time * 3f)).normalized;
-                break;
+                return (goalDir + side * Mathf.Sin(Time.time * 3f)).normalized;
         }
 
-        enemyRb.AddForce(moveDir * speed * Time.deltaTime);
+        return goalDir;
+    }
+    // Applies the appropriate color to the enemy based on its type for visual debugging
+    void ApplyColor()
+    {
+        Renderer r = GetComponent<Renderer>();
+
+        if (type == EnemyType.Aggressive) r.material.color = aggressiveColor;
+        if (type == EnemyType.Defensive) r.material.color = defensiveColor;
+        if (type == EnemyType.Evasive) r.material.color = evasiveColor;
     }
 
-    public void Initialize(int wave, EnemyType type)
+    void OnCollisionEnter(Collision col)
     {
-        waveLevel = wave;
-        enemyType = type;
-
-        speed = baseSpeed + (waveLevel * 0.5f);
-    }
-
-    private void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.name == "Enemy Goal" ||
-            other.gameObject.name == "Player Goal")
+        if (col.gameObject.name.Contains("Goal"))
         {
+            spawnManager?.OnEnemyDestroyed();
             Destroy(gameObject);
         }
     }
-
 }

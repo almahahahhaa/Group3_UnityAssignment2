@@ -1,126 +1,113 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
 public class PlayerControllerX : MonoBehaviour
 {
-    private Rigidbody playerRb;
-    private float speed = 500;
-    private GameObject focalPoint;
+    [Header("Movement")]
+    [SerializeField] private float moveForce = 500f;
+    [SerializeField] private Transform focalPoint;
 
-    public bool hasPowerup;
-    public GameObject powerupIndicator;
-    public int powerUpDuration = 5;
+    [Header("Powerups")]
+    [SerializeField] private float powerupDuration = 5f;
+    [SerializeField] private GameObject powerupIndicator;
 
-    private float normalStrength = 10; // how hard to hit enemy without powerup
-    private float powerupStrength = 25; // how hard to hit enemy with powerup
+    [Header("Hit Strength")]
+    [SerializeField] private float normalStrength = 10f;
+    [SerializeField] private float powerupStrength = 25f;
 
-    // Smash powerup variables
-    [Header("Smash Powerup")]
-    public bool hasSmashPowerup;
-    public float smashForce = 40f;
-    public float smashRadius = 5f;
-    public float jumpForce = 15f;
+    [Header("Smash")]
+    [SerializeField] private float smashForce = 40f;
+    [SerializeField] private float smashRadius = 5f;
 
-    private bool isSmashing;
+    private Rigidbody rb;
+    private bool hasPowerup;
+    private bool hasSmash;
 
-    void Start()
+    void Awake()
     {
-        playerRb = GetComponent<Rigidbody>();
-        focalPoint = GameObject.Find("Focal Point");
+        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
-        // Add force to player in direction of the focal point (and camera)
-        float verticalInput = Input.GetAxis("Vertical");
-        playerRb.AddForce(focalPoint.transform.forward * verticalInput * speed * Time.deltaTime); 
-
-        // Set powerup indicator position to beneath player
-        powerupIndicator.transform.position = transform.position + new Vector3(0, -0.6f, 0);
-
+        Move();
+        UpdateIndicator();
+    }
+    // Applies a forward force based on player input and the focal point's forward direction
+    void Move()
+    {
+        float v = Input.GetAxis("Vertical");
+        rb.AddForce(focalPoint.forward * v * moveForce * Time.deltaTime);
+    }
+    // Updates the position of the powerup indicator to be below the player
+    void UpdateIndicator()
+    {
+        if (powerupIndicator)
+            powerupIndicator.transform.position = transform.position + Vector3.down * 0.6f;
     }
 
-    // If Player collides with powerup, activate powerup
-    private void OnTriggerEnter(Collider other)
+    void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.CompareTag("Powerup"))
-        {
-            Destroy(other.gameObject);
-            hasPowerup = true;
-            powerupIndicator.SetActive(true);
-            StartCoroutine(PowerupCooldown()); // start powerup countdown
-        }
-        // If Player collides with smash powerup, activate smash powerup
-        if (other.gameObject.CompareTag("SmashPowerup"))
-        {
-            Destroy(other.gameObject);
-            hasSmashPowerup = true;
-            powerupIndicator.SetActive(true);
-            StartCoroutine(SmashCooldown()); // start smash powerup countdown
-        }
+        if (other.CompareTag("Powerup"))
+            ActivatePowerup(false, other.gameObject);
 
+        if (other.CompareTag("SmashPowerup"))
+            ActivatePowerup(true, other.gameObject);
     }
-
-    // Coroutine to count down powerup duration
-    IEnumerator PowerupCooldown()
+    // Activates the appropriate powerup based on the type and starts the timer
+    void ActivatePowerup(bool smash, GameObject obj)
     {
-        yield return new WaitForSeconds(powerUpDuration);
+        Destroy(obj);
+
+        hasPowerup = !smash;
+        hasSmash = smash;
+
+        if (powerupIndicator) powerupIndicator.SetActive(true);
+
+        StartCoroutine(PowerupTimer());
+    }
+    // Waits for the powerup duration to expire and then resets the powerup states
+    IEnumerator PowerupTimer()
+    {
+        yield return new WaitForSeconds(powerupDuration);
+
         hasPowerup = false;
-        powerupIndicator.SetActive(false);
+        hasSmash = false;
+
+        if (powerupIndicator) powerupIndicator.SetActive(false);
     }
 
-    // Coroutine to perform smash attack
-    IEnumerator SmashCooldown()
+    void OnCollisionEnter(Collision col)
     {
-        yield return new WaitForSeconds(powerUpDuration);
-        hasSmashPowerup = false;
-        powerupIndicator.SetActive(false);
-    }
-    // If Player collides with enemy
-    private void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("Enemy"))
+        if (!col.gameObject.CompareTag("Enemy")) return;
+        // If the smash powerup is active, apply the smash effect instead of a normal hit
+        if (hasSmash)
         {
-            Rigidbody enemyRigidbody = other.gameObject.GetComponent<Rigidbody>();
-            Vector3 awayFromPlayer = other.transform.position - transform.position;
+            ApplySmash();
+            return;
+        }
 
-            // Smash powerup has highest priority
-            if (hasSmashPowerup)
-            {
-                ApplySmashEffect();
-            }
-            else if (hasPowerup)
-            {
-                enemyRigidbody.AddForce(awayFromPlayer * powerupStrength, ForceMode.Impulse);
-            }
-            else
-            {
-                enemyRigidbody.AddForce(awayFromPlayer * normalStrength, ForceMode.Impulse);
-            }
+        Rigidbody enemyRb = col.rigidbody;
+        Vector3 dir = (col.transform.position - transform.position).normalized;
+
+        float force = hasPowerup ? powerupStrength : normalStrength;
+        enemyRb.AddForce(dir * force, ForceMode.Impulse);
+    }
+    // Applies an explosive force to all enemies within the smash radius, with strength based on distance
+    void ApplySmash()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, smashRadius);
+
+        foreach (var h in hits)
+        {
+            if (!h.CompareTag("Enemy")) continue;
+
+            Rigidbody e = h.attachedRigidbody;
+            Vector3 dir = h.transform.position - transform.position;
+            float dist = dir.magnitude;
+
+            float factor = 1f - dist / smashRadius;
+            e.AddForce(dir.normalized * smashForce * factor, ForceMode.Impulse);
         }
     }
-
-
-    void ApplySmashEffect()
-    {
-        Collider[] hitEnemies = Physics.OverlapSphere(transform.position, smashRadius);
-
-        foreach (Collider col in hitEnemies)
-        {
-            if (col.CompareTag("Enemy"))
-            {
-                Rigidbody enemyRb = col.GetComponent<Rigidbody>();
-
-                Vector3 dir = col.transform.position - transform.position;
-                float distance = dir.magnitude;
-
-                float forceMultiplier = 1 - (distance / smashRadius);
-                float finalForce = smashForce * forceMultiplier;
-
-                enemyRb.AddForce(dir.normalized * finalForce, ForceMode.Impulse);
-            }
-        }
-    }
-
 }
