@@ -39,12 +39,6 @@ public class PlayerControllerX : MonoBehaviour
         // Set powerup indicator position to beneath player
         powerupIndicator.transform.position = transform.position + new Vector3(0, -0.6f, 0);
 
-        // If have powerup, count down powerup duration
-        if (hasSmashPowerup && !isSmashing)
-        {
-            StartCoroutine(SmashAttack());
-        }
-
     }
 
     // If Player collides with powerup, activate powerup
@@ -89,36 +83,27 @@ public class PlayerControllerX : MonoBehaviour
         if (other.gameObject.CompareTag("Enemy"))
         {
             Rigidbody enemyRigidbody = other.gameObject.GetComponent<Rigidbody>();
-            Vector3 awayFromPlayer =  transform.position - other.gameObject.transform.position; 
-           
-            if (hasPowerup) // if have powerup hit enemy with powerup force
+            Vector3 awayFromPlayer = other.transform.position - transform.position;
+
+            // Smash powerup has highest priority
+            if (hasSmashPowerup)
+            {
+                ApplySmashEffect();
+            }
+            else if (hasPowerup)
             {
                 enemyRigidbody.AddForce(awayFromPlayer * powerupStrength, ForceMode.Impulse);
             }
-            else // if no powerup, hit enemy with normal strength 
+            else
             {
                 enemyRigidbody.AddForce(awayFromPlayer * normalStrength, ForceMode.Impulse);
             }
-
-
         }
     }
 
-    IEnumerator SmashAttack()
+
+    void ApplySmashEffect()
     {
-        isSmashing = true;
-
-        // Jump up
-        playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-
-        yield return new WaitForSeconds(0.4f); // airtime
-
-        // Slam down
-        playerRb.AddForce(Vector3.down * jumpForce * 2, ForceMode.Impulse);
-
-        yield return new WaitForSeconds(0.2f);
-
-        // Detect nearby enemies
         Collider[] hitEnemies = Physics.OverlapSphere(transform.position, smashRadius);
 
         foreach (Collider col in hitEnemies)
@@ -136,10 +121,6 @@ public class PlayerControllerX : MonoBehaviour
                 enemyRb.AddForce(dir.normalized * finalForce, ForceMode.Impulse);
             }
         }
-
-        hasSmashPowerup = false;
-        isSmashing = false;
     }
-
 
 }
