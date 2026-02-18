@@ -40,7 +40,7 @@ public class PlayerControllerX : MonoBehaviour
         powerupIndicator.transform.position = transform.position + new Vector3(0, -0.6f, 0);
 
         // If have powerup, count down powerup duration
-        if (hasSmashPowerup && Input.GetKeyDown(KeyCode.Space) && !isSmashing)
+        if (hasSmashPowerup && !isSmashing)
         {
             StartCoroutine(SmashAttack());
         }
@@ -55,12 +55,15 @@ public class PlayerControllerX : MonoBehaviour
             Destroy(other.gameObject);
             hasPowerup = true;
             powerupIndicator.SetActive(true);
+            StartCoroutine(PowerupCooldown()); // start powerup countdown
         }
         // If Player collides with smash powerup, activate smash powerup
         if (other.gameObject.CompareTag("SmashPowerup"))
         {
             Destroy(other.gameObject);
             hasSmashPowerup = true;
+            powerupIndicator.SetActive(true);
+            StartCoroutine(SmashCooldown()); // start smash powerup countdown
         }
 
     }
@@ -73,6 +76,13 @@ public class PlayerControllerX : MonoBehaviour
         powerupIndicator.SetActive(false);
     }
 
+    // Coroutine to perform smash attack
+    IEnumerator SmashCooldown()
+    {
+        yield return new WaitForSeconds(powerUpDuration);
+        hasSmashPowerup = false;
+        powerupIndicator.SetActive(false);
+    }
     // If Player collides with enemy
     private void OnCollisionEnter(Collision other)
     {
