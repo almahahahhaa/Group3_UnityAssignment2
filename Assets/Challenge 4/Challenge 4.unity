@@ -338,6 +338,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 8932280921958007952, guid: 47045ccb8f3944b9b8a55f6b07f0aefc, type: 3}
   powerupPrefab: {fileID: 4446131693967519089, guid: c5497424856514b2ba61b78375567988, type: 3}
+  smashPowerupPrefab: {fileID: 4446131693967519089, guid: d7bc7bfd192420746a3d696b2458a544, type: 3}
   enemyCount: 0
   waveCount: 1
   player: {fileID: 583048338}
@@ -559,6 +560,10 @@ MonoBehaviour:
   hasPowerup: 0
   powerupIndicator: {fileID: 1427939658}
   powerUpDuration: 5
+  hasSmashPowerup: 0
+  smashForce: 40
+  smashRadius: 5
+  jumpForce: 15
 --- !u!1 &680832294
 GameObject:
   m_ObjectHideFlags: 0

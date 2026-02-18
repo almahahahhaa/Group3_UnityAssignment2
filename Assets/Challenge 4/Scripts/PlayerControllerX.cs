@@ -14,7 +14,16 @@ public class PlayerControllerX : MonoBehaviour
 
     private float normalStrength = 10; // how hard to hit enemy without powerup
     private float powerupStrength = 25; // how hard to hit enemy with powerup
-    
+
+    // Smash powerup variables
+    [Header("Smash Powerup")]
+    public bool hasSmashPowerup;
+    public float smashForce = 40f;
+    public float smashRadius = 5f;
+    public float jumpForce = 15f;
+
+    private bool isSmashing;
+
     void Start()
     {
         playerRb = GetComponent<Rigidbody>();
@@ -30,6 +39,12 @@ public class PlayerControllerX : MonoBehaviour
         // Set powerup indicator position to beneath player
         powerupIndicator.transform.position = transform.position + new Vector3(0, -0.6f, 0);
 
+        // If have powerup, count down powerup duration
+        if (hasSmashPowerup && Input.GetKeyDown(KeyCode.Space) && !isSmashing)
+        {
+            StartCoroutine(SmashAttack());
+        }
+
     }
 
     // If Player collides with powerup, activate powerup
@@ -41,6 +56,13 @@ public class PlayerControllerX : MonoBehaviour
             hasPowerup = true;
             powerupIndicator.SetActive(true);
         }
+        // If Player collides with smash powerup, activate smash powerup
+        if (other.gameObject.CompareTag("SmashPowerup"))
+        {
+            Destroy(other.gameObject);
+            hasSmashPowerup = true;
+        }
+
     }
 
     // Coroutine to count down powerup duration
@@ -72,6 +94,42 @@ public class PlayerControllerX : MonoBehaviour
         }
     }
 
+    IEnumerator SmashAttack()
+    {
+        isSmashing = true;
+
+        // Jump up
+        playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+        yield return new WaitForSeconds(0.4f); // airtime
+
+        // Slam down
+        playerRb.AddForce(Vector3.down * jumpForce * 2, ForceMode.Impulse);
+
+        yield return new WaitForSeconds(0.2f);
+
+        // Detect nearby enemies
+        Collider[] hitEnemies = Physics.OverlapSphere(transform.position, smashRadius);
+
+        foreach (Collider col in hitEnemies)
+        {
+            if (col.CompareTag("Enemy"))
+            {
+                Rigidbody enemyRb = col.GetComponent<Rigidbody>();
+
+                Vector3 dir = col.transform.position - transform.position;
+                float distance = dir.magnitude;
+
+                float forceMultiplier = 1 - (distance / smashRadius);
+                float finalForce = smashForce * forceMultiplier;
+
+                enemyRb.AddForce(dir.normalized * finalForce, ForceMode.Impulse);
+            }
+        }
+
+        hasSmashPowerup = false;
+        isSmashing = false;
+    }
 
 
 }

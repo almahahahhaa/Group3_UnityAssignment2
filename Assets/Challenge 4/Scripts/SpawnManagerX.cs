@@ -6,6 +6,7 @@ public class SpawnManagerX : MonoBehaviour
 {
     public GameObject enemyPrefab;
     public GameObject powerupPrefab;
+    public GameObject smashPowerupPrefab; // reference to smash powerup prefab
 
     private float spawnRangeX = 10;
     private float spawnZMin = 15; // set min spawn Z
@@ -42,11 +43,28 @@ public class SpawnManagerX : MonoBehaviour
     {
         Vector3 powerupSpawnOffset = new Vector3(0, 0, -15); // make powerups spawn at player end
 
-        // If no powerups remain, spawn a powerup
-        if (GameObject.FindGameObjectsWithTag("Powerup").Length == 0) // check that there are zero powerups
+        //// If no powerups remain, spawn a powerup
+        //if (GameObject.FindGameObjectsWithTag("Powerup").Length == 0) // check that there are zero powerups
+        //{
+        //    Instantiate(powerupPrefab, GenerateSpawnPosition() + powerupSpawnOffset, powerupPrefab.transform.rotation);
+        //}
+
+        // If no powerups remain, spawn either normal or smash
+        if (GameObject.FindGameObjectsWithTag("Powerup").Length == 0 &&
+            GameObject.FindGameObjectsWithTag("SmashPowerup").Length == 0)
         {
-            Instantiate(powerupPrefab, GenerateSpawnPosition() + powerupSpawnOffset, powerupPrefab.transform.rotation);
+            Vector3 spawnPos = GenerateSpawnPosition() + powerupSpawnOffset;
+            // Randomly decide to spawn either a normal powerup or a smash powerup
+            if (Random.value > 0.5f)
+            {
+                Instantiate(smashPowerupPrefab, spawnPos, smashPowerupPrefab.transform.rotation);
+            }
+            else
+            {
+                Instantiate(powerupPrefab, spawnPos, powerupPrefab.transform.rotation);
+            }
         }
+
 
         // Spawn number of enemy balls based on wave number
         for (int i = 0; i < 2; i++)
@@ -58,6 +76,7 @@ public class SpawnManagerX : MonoBehaviour
         ResetPlayerPosition(); // put player back at start
 
     }
+
 
     // Move player back to position in front of own goal
     void ResetPlayerPosition ()
