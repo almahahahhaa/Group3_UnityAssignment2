@@ -34,7 +34,7 @@ public class SpawnManagerX : MonoBehaviour
     {
         SpawnPowerup();
         SpawnEnemies(waveCount + startingEnemies - 1);
-
+        GameManager.Instance.NextWave(waveCount);
         waveCount++;
         ResetPlayer();
     }

@@ -15,17 +15,19 @@ public class GameManager : MonoBehaviour
     [Header("Wave")]
     public int currentWave { get; private set; } = 1;
 
-    private GamePlayUI ui;
+    public GamePlayUI gamePlayUI;
 
     void Awake()
     {
         Instance = this;
-        ui = FindObjectOfType<GamePlayUI>();
+        if(gamePlayUI == null)
+            gamePlayUI = FindObjectOfType<GamePlayUI>();
+        Time.timeScale = 0; // Start paused until StartGame is called
     }
 
     void Start()
     {
-        StartGame();
+        
     }
 
     void Update()
@@ -37,12 +39,13 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        Time.timeScale = 1;
         remainingTime = gameDuration;
         isGameRunning = true;
         isPaused = false;
 
-        ui.UpdateWave(currentWave);
-        ui.UpdateTimer(remainingTime);
+        gamePlayUI.UpdateWave(currentWave);
+        gamePlayUI.UpdateTimer(remainingTime);
     }
 
     void UpdateTimer()
@@ -50,7 +53,7 @@ public class GameManager : MonoBehaviour
         remainingTime -= Time.deltaTime;
         remainingTime = Mathf.Max(remainingTime, 0);
 
-        ui.UpdateTimer(remainingTime);
+        gamePlayUI.UpdateTimer(remainingTime);
 
         if (remainingTime <= 0)
             EndGame();
@@ -59,20 +62,20 @@ public class GameManager : MonoBehaviour
     public void NextWave(int wave)
     {
         currentWave = wave;
-        ui.UpdateWave(currentWave);
+        gamePlayUI.UpdateWave(currentWave);
     }
 
     public void TogglePause()
     {
         isPaused = !isPaused;
         Time.timeScale = isPaused ? 0 : 1;
-        ui.SetPauseState(isPaused);
+        gamePlayUI.SetPauseState(isPaused);
     }
 
     public void EndGame()
     {
         isGameRunning = false;
         Time.timeScale = 0;
-        ui.ShowGameOver();
+        UIManager.Instance.ShowGameOverScreen();
     }
 }

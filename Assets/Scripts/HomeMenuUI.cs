@@ -17,6 +17,7 @@ public class HomeMenuUI : MonoBehaviour
 
     private void OnPlayClicked()
     {
+        GameManager.Instance.StartGame();
         UIManager.Instance.ShowGamePlay();
     }
 

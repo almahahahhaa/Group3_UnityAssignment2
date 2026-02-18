@@ -13,7 +13,6 @@ public class GamePlayUI : MonoBehaviour
     [SerializeField] private Slider smashPowerupSlider;
 
     [SerializeField] private GameObject pausePanel;
-    [SerializeField] private GameObject gameOverPanel;
 
     public void UpdateWave(int wave)
     {
@@ -32,10 +31,6 @@ public class GamePlayUI : MonoBehaviour
         pausePanel.SetActive(paused);
     }
 
-    public void ShowGameOver()
-    {
-        gameOverPanel.SetActive(true);
-    }
 
     public void UpdatePowerup(float simple, float smash)
     {
