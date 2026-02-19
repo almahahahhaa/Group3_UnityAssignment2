@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 public class GamePlayUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text playerGoalsText;
@@ -37,10 +38,45 @@ public class GamePlayUI : MonoBehaviour
         pausePanel.SetActive(paused);
     }
 
-
-    public void UpdatePowerup(float simple, float smash)
+    public void UpdatePlayerGoals(int goals)
     {
-        simplePowerupSlider.value = simple;
-        smashPowerupSlider.value = smash;
+        playerGoalsText.text = $"Player: {goals}";
+    }
+
+    public void UpdateEnemyGoals(int goals)
+    {
+        enemyGoalsText.text = $"AI: {goals}";
+    }
+
+    public void ActivePowerup(PowerupType type)
+    {
+        switch (type)
+        {
+            case PowerupType.Simple:
+                simplePowerupSlider.gameObject.SetActive(true);
+                break;
+            case PowerupType.Smash:
+                smashPowerupSlider.gameObject.SetActive(true);
+                break;
+        }
+    }
+    public void UpdateSimplePowerup(float value)
+    {
+        simplePowerupSlider.value = value;
+    }
+
+    public void UpdateSmashPowerup(float value)
+    {
+        smashPowerupSlider.value = value;
+    }
+
+    public void HidePowerup()
+    {
+        simplePowerupSlider.gameObject.SetActive(false);
+    }
+
+    public void HideSmashPowerup()
+    {
+        smashPowerupSlider.gameObject.SetActive(false);
     }
 }

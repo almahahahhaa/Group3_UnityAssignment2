@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+public enum PowerupType
+{
+    Simple,
+    Smash
+}
 public class PlayerControllerX : MonoBehaviour
 {
     [Header("Movement")]
@@ -50,10 +54,15 @@ public class PlayerControllerX : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Powerup"))
+        {
             ActivatePowerup(false, other.gameObject);
-
+            GameManager.Instance.gamePlayUI.ActivePowerup(PowerupType.Simple);
+        }
         if (other.CompareTag("SmashPowerup"))
+        {
             ActivatePowerup(true, other.gameObject);
+            GameManager.Instance.gamePlayUI.ActivePowerup(PowerupType.Smash);
+        }
     }
     // Activates the appropriate powerup based on the type and starts the timer
     void ActivatePowerup(bool smash, GameObject obj)
@@ -70,11 +79,24 @@ public class PlayerControllerX : MonoBehaviour
     // Waits for the powerup duration to expire and then resets the powerup states
     IEnumerator PowerupTimer()
     {
-        yield return new WaitForSeconds(powerupDuration);
+        // update the powerup UI fill amount over time
+        float timer = powerupDuration;
+        while (timer > 0)
+        {
+            if(hasPowerup)
+                GameManager.Instance.gamePlayUI.UpdateSimplePowerup(timer / powerupDuration);
+            if(hasSmash)
+                GameManager.Instance.gamePlayUI.UpdateSmashPowerup(timer / powerupDuration);
+
+            yield return null;
+            timer -= Time.deltaTime;
+        }
 
         hasPowerup = false;
         hasSmash = false;
 
+        GameManager.Instance.gamePlayUI.HidePowerup();
+        GameManager.Instance.gamePlayUI.HideSmashPowerup();
         if (powerupIndicator) powerupIndicator.SetActive(false);
     }
 

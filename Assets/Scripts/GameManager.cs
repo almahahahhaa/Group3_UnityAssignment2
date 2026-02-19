@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -72,6 +73,12 @@ public class GameManager : MonoBehaviour
         gamePlayUI.SetPauseState(isPaused);
     }
 
+    public void ResumeGame()
+    {
+        isPaused = false;
+        Time.timeScale = 1;
+        gamePlayUI.SetPauseState(false);
+    }
     public void EndGame()
     {
         isGameRunning = false;
