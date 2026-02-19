@@ -17,19 +17,21 @@ public class GameManager : MonoBehaviour
     public int currentWave { get; private set; } = 1;
 
     public GamePlayUI gamePlayUI;
+    public GameOverUI gameOverUI;
+
+    public int playerGoals { get; private set; }
+    public int enemyGoals { get; private set; }
 
     void Awake()
     {
         Instance = this;
         if(gamePlayUI == null)
             gamePlayUI = FindObjectOfType<GamePlayUI>();
+        if(gameOverUI == null)
+            gameOverUI = FindObjectOfType<GameOverUI>();
         Time.timeScale = 0; // Start paused until StartGame is called
     }
 
-    void Start()
-    {
-        
-    }
 
     void Update()
     {
@@ -84,5 +86,18 @@ public class GameManager : MonoBehaviour
         isGameRunning = false;
         Time.timeScale = 0;
         UIManager.Instance.ShowGameOverScreen();
+        gameOverUI.ShowGameOver(playerGoals, enemyGoals);
+    }
+
+    public void PlayerScored()
+    {
+        playerGoals++;
+        gamePlayUI.UpdatePlayerGoals(playerGoals);
+    }
+
+    public void EnemyScored()
+    {
+        enemyGoals++;
+        gamePlayUI.UpdateEnemyGoals(enemyGoals);
     }
 }

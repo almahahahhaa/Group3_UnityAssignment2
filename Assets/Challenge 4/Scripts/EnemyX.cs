@@ -75,6 +75,18 @@ public class EnemyX : MonoBehaviour
 
     void OnCollisionEnter(Collision col)
     {
+       // update goal score's
+        if(col.gameObject.name.Contains("Player Goal"))
+        {
+            // update enemy score
+            GameManager.Instance.EnemyScored();
+        }
+        if(col.gameObject.name.Contains("Enemy Goal"))
+        {
+            // update player score
+             GameManager.Instance.PlayerScored();
+        }
+
         if (col.gameObject.name.Contains("Goal"))
         {
             spawnManager?.OnEnemyDestroyed();
