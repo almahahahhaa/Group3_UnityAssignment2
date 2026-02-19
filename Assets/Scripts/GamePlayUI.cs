@@ -40,7 +40,7 @@ public class GamePlayUI : MonoBehaviour
 
     public void UpdatePlayerGoals(int goals)
     {
-        playerGoalsText.text = $"Player: {goals}";
+        playerGoalsText.text = $"You: {goals}";
     }
 
     public void UpdateEnemyGoals(int goals)

@@ -760,8 +760,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a278eec84cfbff4c984ec0ed1366b07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  gameDuration: 60
+  gameDuration: 180
   gamePlayUI: {fileID: 8807276369665932726}
+  gameOverUI: {fileID: 9046014428335466229}
 --- !u!1 &304731424
 GameObject:
   m_ObjectHideFlags: 0
@@ -1085,12 +1086,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveForce: 1000
   focalPoint: {fileID: 1170353596}
-  powerupDuration: 5
+  powerupDuration: 15
   powerupIndicator: {fileID: 1427939658}
   normalStrength: 10
   powerupStrength: 25
   smashForce: 40
   smashRadius: 5
+  smashJumpForce: 12
+  smashDownForce: 25
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &613220037
 GameObject:
   m_ObjectHideFlags: 0
@@ -1910,7 +1916,7 @@ GameObject:
   - component: {fileID: 1055584952}
   - component: {fileID: 1055584951}
   - component: {fileID: 1055584950}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}

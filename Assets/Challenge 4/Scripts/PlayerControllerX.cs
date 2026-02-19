@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+
 public enum PowerupType
 {
     Simple,
     Smash
 }
+
 public class PlayerControllerX : MonoBehaviour
 {
     [Header("Movement")]
@@ -22,10 +24,16 @@ public class PlayerControllerX : MonoBehaviour
     [Header("Smash")]
     [SerializeField] private float smashForce = 40f;
     [SerializeField] private float smashRadius = 5f;
+    [SerializeField] private float smashJumpForce = 12f;
+    [SerializeField] private float smashDownForce = 25f;
+    [SerializeField] private LayerMask groundLayer;
 
     private Rigidbody rb;
+
     private bool hasPowerup;
     private bool hasSmash;
+    private bool isSmashing;
+    private bool isGrounded = true;
 
     void Awake()
     {
@@ -34,17 +42,25 @@ public class PlayerControllerX : MonoBehaviour
 
     void Update()
     {
-        if(!GameManager.Instance.isGameRunning || GameManager.Instance.isPaused) { return; }
+        if (!GameManager.Instance.isGameRunning || GameManager.Instance.isPaused)
+            return;
+
         Move();
         UpdateIndicator();
+
+        // Smash trigger (Space)
+        if (hasSmash && isGrounded && !isSmashing && Input.GetKeyDown(KeyCode.Space))
+        {
+            StartCoroutine(SmashRoutine());
+        }
     }
-    // Applies a forward force based on player input and the focal point's forward direction
+
     void Move()
     {
         float v = Input.GetAxis("Vertical");
         rb.AddForce(focalPoint.forward * v * moveForce * Time.deltaTime);
     }
-    // Updates the position of the powerup indicator to be below the player
+
     void UpdateIndicator()
     {
         if (powerupIndicator)
@@ -58,13 +74,13 @@ public class PlayerControllerX : MonoBehaviour
             ActivatePowerup(false, other.gameObject);
             GameManager.Instance.gamePlayUI.ActivePowerup(PowerupType.Simple);
         }
-        if (other.CompareTag("SmashPowerup"))
+        else if (other.CompareTag("SmashPowerup"))
         {
             ActivatePowerup(true, other.gameObject);
             GameManager.Instance.gamePlayUI.ActivePowerup(PowerupType.Smash);
         }
     }
-    // Activates the appropriate powerup based on the type and starts the timer
+
     void ActivatePowerup(bool smash, GameObject obj)
     {
         Destroy(obj);
@@ -76,20 +92,21 @@ public class PlayerControllerX : MonoBehaviour
 
         StartCoroutine(PowerupTimer());
     }
-    // Waits for the powerup duration to expire and then resets the powerup states
+
     IEnumerator PowerupTimer()
     {
-        // update the powerup UI fill amount over time
         float timer = powerupDuration;
+
         while (timer > 0)
         {
-            if(hasPowerup)
+            if (hasPowerup)
                 GameManager.Instance.gamePlayUI.UpdateSimplePowerup(timer / powerupDuration);
-            if(hasSmash)
+
+            if (hasSmash)
                 GameManager.Instance.gamePlayUI.UpdateSmashPowerup(timer / powerupDuration);
 
-            yield return null;
             timer -= Time.deltaTime;
+            yield return null;
         }
 
         hasPowerup = false;
@@ -97,26 +114,52 @@ public class PlayerControllerX : MonoBehaviour
 
         GameManager.Instance.gamePlayUI.HidePowerup();
         GameManager.Instance.gamePlayUI.HideSmashPowerup();
+
         if (powerupIndicator) powerupIndicator.SetActive(false);
     }
 
     void OnCollisionEnter(Collision col)
     {
-        if (!col.gameObject.CompareTag("Enemy")) return;
-        // If the smash powerup is active, apply the smash effect instead of a normal hit
-        if (hasSmash)
+        // Ground detection
+        if (((1 << col.gameObject.layer) & groundLayer) != 0)
         {
-            ApplySmash();
-            return;
+            isGrounded = true;
+
+            // Landing after smash
+            if (isSmashing)
+            {
+                ApplySmash();
+                isSmashing = false;
+            }
         }
 
-        Rigidbody enemyRb = col.rigidbody;
-        Vector3 dir = (col.transform.position - transform.position).normalized;
+        if (!col.gameObject.CompareTag("Enemy")) return;
 
-        float force = hasPowerup ? powerupStrength : normalStrength;
-        enemyRb.AddForce(dir * force, ForceMode.Impulse);
+        // Normal / powerup hit
+        if (!hasSmash)
+        {
+            Rigidbody enemyRb = col.rigidbody;
+            Vector3 dir = (col.transform.position - transform.position).normalized;
+
+            float force = hasPowerup ? powerupStrength : normalStrength;
+            enemyRb.AddForce(dir * force, ForceMode.Impulse);
+        }
     }
-    // Applies an explosive force to all enemies within the smash radius, with strength based on distance
+
+    IEnumerator SmashRoutine()
+    {
+        isSmashing = true;
+        isGrounded = false;
+
+        // Jump up
+        rb.AddForce(Vector3.up * smashJumpForce, ForceMode.Impulse);
+
+        yield return new WaitForSeconds(0.25f);
+
+        // Slam down
+        rb.AddForce(Vector3.down * smashDownForce, ForceMode.Impulse);
+    }
+
     void ApplySmash()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, smashRadius);
