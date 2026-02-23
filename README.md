@@ -85,7 +85,7 @@ The project used feature-based branching:
 
 Each feature branch was developed independently and merged into main after testing.
 
-Example merges:
+ Some merges:
 - feature/enemy_ai to main  
 - feature/ui to main  
 - feature/powerup to main  
