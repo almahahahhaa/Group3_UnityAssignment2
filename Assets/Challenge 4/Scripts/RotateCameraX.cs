@@ -1,19 +1,16 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class RotateCameraX : MonoBehaviour
 {
-    public float speed = 200;
-    public GameObject player;
+    [SerializeField] private float mouseSensitivity = 200f;
+    [SerializeField] private Transform player;
 
-    // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
-        transform.Rotate(Vector3.up, horizontalInput * speed * Time.deltaTime);
+        float mouseX = Input.GetAxis("Mouse X");
 
-        transform.position = player.transform.position; // Move focal point with player
+        transform.Rotate(Vector3.up, mouseX * mouseSensitivity * Time.deltaTime);
 
+        transform.position = player.position;
     }
 }

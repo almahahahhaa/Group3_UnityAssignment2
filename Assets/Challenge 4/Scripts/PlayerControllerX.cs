@@ -11,7 +11,7 @@ public class PlayerControllerX : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField] private float moveForce = 500f;
-    [SerializeField] private Transform focalPoint;
+    [SerializeField] private Transform cameraTransform;
 
     [Header("Powerups")]
     [SerializeField] private float powerupDuration = 5f;
@@ -48,7 +48,6 @@ public class PlayerControllerX : MonoBehaviour
         Move();
         UpdateIndicator();
 
-        // Smash trigger (Space)
         if (hasSmash && isGrounded && !isSmashing && Input.GetKeyDown(KeyCode.Space))
         {
             StartCoroutine(SmashRoutine());
@@ -57,8 +56,18 @@ public class PlayerControllerX : MonoBehaviour
 
     void Move()
     {
-        float v = Input.GetAxis("Vertical");
-        rb.AddForce(focalPoint.forward * v * moveForce * Time.deltaTime);
+        float v = Input.GetAxis("Vertical");   // ↑ ↓
+        float h = Input.GetAxis("Horizontal"); // ← →
+
+        Vector3 camForward = cameraTransform.forward;
+        Vector3 camRight = cameraTransform.right;
+
+        camForward.y = 0;
+        camRight.y = 0;
+
+        Vector3 moveDir = (camForward * v + camRight * h).normalized;
+
+        rb.AddForce(moveDir * moveForce * Time.deltaTime);
     }
 
     void UpdateIndicator()
@@ -120,12 +129,10 @@ public class PlayerControllerX : MonoBehaviour
 
     void OnCollisionEnter(Collision col)
     {
-        // Ground detection
         if (((1 << col.gameObject.layer) & groundLayer) != 0)
         {
             isGrounded = true;
 
-            // Landing after smash
             if (isSmashing)
             {
                 ApplySmash();
@@ -135,7 +142,6 @@ public class PlayerControllerX : MonoBehaviour
 
         if (!col.gameObject.CompareTag("Enemy")) return;
 
-        // Normal / powerup hit
         if (!hasSmash)
         {
             Rigidbody enemyRb = col.rigidbody;
@@ -151,12 +157,8 @@ public class PlayerControllerX : MonoBehaviour
         isSmashing = true;
         isGrounded = false;
 
-        // Jump up
         rb.AddForce(Vector3.up * smashJumpForce, ForceMode.Impulse);
-
         yield return new WaitForSeconds(0.25f);
-
-        // Slam down
         rb.AddForce(Vector3.down * smashDownForce, ForceMode.Impulse);
     }
 

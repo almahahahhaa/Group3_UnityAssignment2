@@ -1085,7 +1085,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveForce: 1000
-  focalPoint: {fileID: 1170353596}
+  cameraTransform: {fileID: 1211419928}
   powerupDuration: 15
   powerupIndicator: {fileID: 1427939658}
   normalStrength: 10
@@ -2096,8 +2096,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 744266f074b3f4235a838c7c53aa326b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 200
-  player: {fileID: 583048338}
+  mouseSensitivity: 200
+  player: {fileID: 583048342}
 --- !u!4 &1170353596
 Transform:
   m_ObjectHideFlags: 0
